@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Game Winners | Rahul</title>
+
+<style>
+body{
+  font-family:Arial,Helvetica,sans-serif;
+  margin:0;
+  background:#f4f4f4;
+  color:#111;
+  
+  
+}
+
+header{
+  text-align:center;
+  padding:15px;
+  background:#fff;
+  font-size:20px;
+  border-bottom:1px solid #ddd;
+}
+.container{
+  max-width:980px;
+  margin:18px auto;
+  padding:12px;
+}
+.card{
+  background:#fff;
+  border:1px solid #ddd;
+  border-radius:6px;
+  padding:16px;
+  margin-bottom:12px;
+}
+label{font-size:14px;margin-bottom:4px;display:block;font-weight:600}
+input,button{
+  padding:8px;
+  border:1px solid #ccc;
+  border-radius:4px;
+  width:100%;
+  font-size:14px;
+}
+.row{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.row > div{
+  flex:1;
+  min-width:180px;
+}
+button{
+  cursor:pointer;
+  background:#222;
+  color:#fff;
+  border:none;
+}
+button.secondary{background:#666}
+button:hover{opacity:0.9}
+
+table{
+  width:80%;
+  margin:20px auto;   /* center table */
+  border-collapse:collapse;
+  text-align:center;
+  background:#fff;
+}
+
+th,td{
+  border:1px solid #444;
+  padding:8px;
+  font-size:14px;
+}
+/* Rank = Photo same width */
+/* Rank = Photo equal width but bigger */
+td:first-child{
+  width:110px;
+}
+
+/* Bigger photo slot */
+td.photo{
+  width:110px;
+  height:140px;
+  padding:6px;
+  background:#fff;
+  
+}
+
+td.photo img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  padding:4px;
+  background:#fff;
+  border-radius:3px;
+}
+
+
+
+.thumb img{
+  width:85px;
+  height:105px;
+  object-fit:cover;
+  border:1px solid #000;
+  margin-top:4px;
+}
+.hidden{display:none}
+#stdLabel{
+  text-align:left;
+  font-weight:bold;
+  margin-bottom:6px;
+  font-size:16px;
+}
+.sign-area{
+    width: 80%;
+  margin: auto;
+  margin-top:70px;
+  display:flex;
+  justify-content:space-between;
+  font-size:16px;
+  font-weight:bold;
+}
+@media(max-width:600px){
+  .row{flex-direction:column}
+  .sign-area{flex-direction:column;gap:15px;text-align:center}
+  button{width:100%}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<strong>Gaming Tournament Winner Board</strong><br>
+<small>Created By Rahul</small>
+</header>
+
+<div class="container">
+
+<div class="card">
+<form id="mainForm">
+
+<div class="row">
+<div>
+<label>School / Club Name</label>
+<input id="schoolName" type="text" value="School / Club Name">
+</div>
+<div>
+<label>Game / Tournament Name</label>
+<input id="gameName" type="text" value="Free Fire Championship">
+</div>
+</div>
+
+<div class="row">
+<div>
+<label>Standard</label>
+<input id="standard" type="text" value="Std 10">
+</div>
+<div>
+<label>Total Winners</label>
+<input id="winnerCount" type="number" min="1" value="3">
+</div>
+<div>
+<label>Start Rank From</label>
+<input id="startRank" type="number" min="1" value="1">
+</div>
+</div>
+
+<br>
+<label style="font-size:15px">Add Winner Details</label>
+<div id="playersContainer"></div>
+
+<div class="row">
+<button id="generate">Generate</button>
+<button type="button" id="previewOnly" class="secondary">Preview</button>
+<button type="button" id="clearAll" class="secondary">Clear Photos</button>
+</div>
+
+</form>
+</div>
+
+<!-- PDF Section -->
+<div style="border: 1px solid black; margin: 20px;" id="docSection" class="card hidden">
+<div id="docToExport">
+
+<h2 id="docSchool" style="text-align:center;margin-bottom:2px"></h2>
+<div id="stdLabel"></div>
+<div style="text-align:center;margin-bottom:4px"><b id="docGame"></b></div>
+<div style="text-align:center;margin:6px 0;font-weight:bold" id="docTopLabel"></div>
+
+<table id="docTable">
+<thead>
+<tr>
+<th>Rank</th>
+<th>Player Name</th>
+<th>Photo</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+<div class="sign-area">
+<div>Teacher Sign: _________</div>
+<div>Principal Sign: _________</div>
+</div>
+</div>
+
+<div style="text-align:center;margin-top:10px">
+<button id="downloadPdf">Download PDF</button>
+</div>
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+
+<script>
+async function fileToBase64(file){
+return new Promise((res,rej)=>{
+  const r=new FileReader();
+  r.onload=()=>res(r.result);
+  r.onerror=rej;
+  r.readAsDataURL(file);
+});
+}
+
+const playersContainer=document.getElementById('playersContainer');
+const countInput=document.getElementById('winnerCount');
+
+function makeInputs(){
+const n=parseInt(countInput.value)||1;
+playersContainer.innerHTML="";
+for(let i=0;i<n;i++){
+const card=document.createElement("div");
+card.className="card";
+card.style.padding="10px";
+card.innerHTML=`
+<div class="row">
+<div style="flex:0 0 60px">
+<label>Rank</label>
+<input type="number" class="rankInput" value="${i+1}">
+</div>
+<div style="flex:1">
+<label>Player Name</label>
+<input type="text" class="nameInput" placeholder="Enter name">
+</div>
+<div style="flex:0 0 150px">
+<label>Photo</label>
+<input type="file" class="photoInput" accept="image/*">
+<div class="thumb"></div>
+</div>
+</div>
+`;
+playersContainer.appendChild(card);
+
+const f=card.querySelector('.photoInput');
+const prev=card.querySelector('.thumb');
+f.addEventListener('change',()=>{
+const file=f.files[0];
+prev.innerHTML="";
+if(file){
+const img=document.createElement("img");
+img.src=URL.createObjectURL(file);
+prev.appendChild(img);
+}
+});
+}
+}
+countInput.addEventListener("input",makeInputs);
+makeInputs();
+
+document.getElementById('clearAll').addEventListener('click',()=>{
+document.querySelectorAll('.photoInput').forEach(i=>i.value='');
+document.querySelectorAll('.thumb').forEach(t=>t.innerHTML='');
+});
+
+async function fillDoc(){
+const school=document.getElementById('schoolName').value;
+const game=document.getElementById('gameName').value;
+const std=document.getElementById('standard').value;
+const tbody=document.querySelector('#docTable tbody');
+const total=parseInt(countInput.value);
+const start=parseInt(document.getElementById('startRank').value)||1;
+
+document.getElementById('docSchool').textContent=school;
+document.getElementById('docGame').textContent=game;
+document.getElementById('stdLabel').textContent=std;
+document.getElementById('docTopLabel').textContent=`WINNERS (${total})`;
+
+tbody.innerHTML="";
+let rank=start;
+for(let c of document.querySelectorAll('#playersContainer .card')){
+const name=c.querySelector('.nameInput').value;
+const file=c.querySelector('.photoInput').files[0];
+let img64="";
+if(file) img64=await fileToBase64(file);
+tbody.innerHTML+=`
+<tr>
+<td>${rank}</td>
+<td>${name}</td>
+<td class="photo">${img64?`<img src="${img64}">`:''}</td>
+</tr>`;
+rank++;
+}
+
+document.getElementById('docSection').classList.remove("hidden");
+}
+
+document.getElementById("previewOnly").onclick=e=>{e.preventDefault();fillDoc()};
+document.getElementById("generate").onclick=e=>{e.preventDefault();fillDoc()};
+
+document.getElementById("downloadPdf").onclick=()=>{
+html2pdf().set({
+margin:0.4,
+filename:"Game-Winners.pdf",
+html2canvas:{scale:2},
+jsPDF:{unit:"in",format:"a4"}
+}).from(document.getElementById("docToExport")).save().then(()=>{
+alert("✅ PDF Downloaded Successfully!");
+});
+};
+</script>
+
+</body>
+</html>

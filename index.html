@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>RAHUL</title>
+
+  <style>
+    :root{--accent:#333;--muted:#777;--paper:#f3f3f3}
+    body{font-family: Arial, Helvetica, sans-serif;margin:0;background:#fafafa;color:#111}
+    header{background:linear-gradient(90deg,#eee,#ddd);padding:18px;text-align:center;border-bottom:1px solid #ccc}
+    .container{max-width:980px;margin:18px auto;padding:12px}
+    .card{background:#fff;border:1px solid #ddd;border-radius:6px;padding:14px;box-shadow:0 2px 6px rgba(0,0,0,0.03)}
+    label{display:block;margin:8px 0 6px;font-size:14px}
+    input[type=text],select,input[type=file],input[type=number]{width:100%;padding:8px;border:1px solid #ccc;border-radius:4px}
+    .row{display:flex;gap:12px}
+    .row > *{flex:1}
+    .controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    button{background:var(--accent);color:white;padding:10px 12px;border:0;border-radius:5px;cursor:pointer}
+    button.secondary{background:#666}
+    @media (max-width:680px){.row{flex-direction:column}}
+
+    .doc-wrap{margin-top:16px;padding:12px;background:var(--paper);border:1px solid #bbb}
+    .doc{background:white;border:1px solid #999;padding:18px;max-width:800px;margin:0 auto}
+    .doc .title{text-align:center}
+    .doc h1{margin:0;font-size:24px;text-decoration:underline}
+    .doc .sub{margin-top:8px;text-align:center;color:var(--muted)}
+
+    table{width:100%;border-collapse:collapse;margin-top:12px;text-align:center}
+    th,td{border:1px solid #777;padding:8px;text-align:center}
+
+    th.rank{width:6%}
+    th.photo{width:18%}
+    th.pr{width:10%}
+
+    /* PDF/Table photo - rectangle */
+    td.photo img{
+      width:85px;
+      height:105px;
+      object-fit:cover;
+      display:block;
+      margin:auto;
+    }
+
+    .hidden{display:none}
+
+    #docTopLabel {
+      width:100%;
+      text-align:center;
+      display:block;
+      margin-top:10px;
+      margin-bottom:10px;
+      font-size:18px;
+      font-weight:bold;
+      position:relative;
+    }
+
+    #docTopLabel span { font-size:14px; font-weight:bold; }
+
+    #stdLabel{
+      text-align:left;
+      font-size:16px;
+      font-weight:bold;
+      margin-bottom:8px;
+    }
+
+    .sign-area{
+      margin-top:40px;
+      display:flex;
+      justify-content:space-between;
+      font-size:16px;
+      font-weight:bold;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <strong>Top Students Report Generator</strong>
+  <div style="font-size:13px;color:#555;margin-top:6px">Create By Rahul.</div>
+</header>
+<div style="text-align:right; margin:8px 10px;">
+  <button style="
+    background:#5dc8ff;
+    color:#000;
+    font-weight:bold;
+    font-size:14px;
+    padding:6px 12px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+  ">
+    <a href="Sports.html">Sports</a>
+  </button>
+</div>
+
+<div class="container">
+  <div class="card">
+    <form id="mainForm">
+      <div class="row">
+        <div>
+          <label>School Name</label>
+          <input id="schoolName" type="text" value="School Name">
+        </div>
+        <div>
+          <label>Exam Name</label>
+          <input id="examName" type="text" value="Exam Name">
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:6px">
+        <div>
+          <label>Standard</label>
+          <select id="standard">
+            <option>Standard 1</option><option>Standard 2</option><option>Standard 3</option>
+            <option>Standard 4</option><option>Standard 5</option><option>Standard 6</option>
+            <option>Standard 7</option><option>Standard 8</option><option>Standard 9</option>
+            <option selected>Standard 10</option><option>Standard 11</option><option>Standard 12</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Select Top Students Count</label>
+          <select id="topCount">
+            <option value="3">Top 3</option>
+            <option value="5">Top 5</option>
+            <option value="10">Top 10</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Start Rank From</label>
+          <input id="startRank" type="number" min="1" value="1">
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <label>Enter Student Details</label>
+        <div id="studentsContainer"></div>
+      </div>
+
+      <div class="controls">
+        <button id="generate">Generate</button>
+        <button type="button" id="previewOnly" class="secondary">Preview</button>
+        <button type="button" id="clearAll" class="secondary">Clear Photos</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="docSection" class="doc-wrap hidden">
+    <div class="card doc" id="docToExport">
+
+      <div id="stdLabel"></div>
+
+      <div class="title">
+        <h1 id="docSchool">School Name</h1>
+        <div class="sub"><strong id="docExam">Exam Name</strong></div>
+        <div class="sub" id="docTopLabel"></div>
+      </div>
+
+      <table id="docTable">
+        <thead>
+          <tr>
+            <th class="rank">Rank</th>
+            <th>Student Name</th>
+            <th class="pr">PR / %</th>
+            <th class="photo">Photo</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div class="sign-area">
+        <div>Class Teacher Signature: ___________</div>
+        <div>Principal Signature: ___________</div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:10px">
+      <button id="downloadPdf">Download PDF</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+<script>
+
+// Convert File → Base64
+async function fileToBase64(file){
+  return new Promise((resolve,reject)=>{
+    let r=new FileReader();
+    r.onload=()=>resolve(r.result);
+    r.onerror=reject;
+    r.readAsDataURL(file);
+  });
+}
+
+const studentsContainer=document.getElementById('studentsContainer');
+const topCountSelect=document.getElementById('topCount');
+const startRankInput=document.getElementById('startRank');
+
+function buildStudentInputs(){
+  const n=parseInt(topCountSelect.value,10);
+  studentsContainer.innerHTML='';
+  for(let i=0;i<n;i++){
+    const wrapper=document.createElement('div');
+    wrapper.className='card';
+    wrapper.style.marginTop='8px';
+    wrapper.innerHTML=`
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <div style="flex:0 0 55px">
+          <label>Rank</label>
+          <input type="number" class="rankInput" value="${i+1}" min="1" />
+        </div>
+        <div style="flex:1">
+          <label>Name</label>
+          <input type="text" class="nameInput" placeholder="Student name" />
+        </div>
+        <div style="flex:0 0 100px">
+          <label>% / PR</label>
+          <input type="text" class="prInput" placeholder="92.5%" />
+        </div>
+        <div style="flex:0 0 140px">
+          <label>Photo</label>
+          <input type="file" accept="image/*" class="photoInput" />
+          <div class="thumbPreview" style="margin-top:6px"></div>
+        </div>
+      </div>
+    `;
+    studentsContainer.appendChild(wrapper);
+
+    const f=wrapper.querySelector('.photoInput');
+    const prev=wrapper.querySelector('.thumbPreview');
+
+    f.addEventListener('change',e=>{
+      const file=e.target.files[0];
+      prev.innerHTML='';
+      if(file){
+        const img=document.createElement('img');
+        img.style.width='85px';
+        img.style.height='105px';
+        img.style.objectFit='cover';
+        img.src=URL.createObjectURL(file);
+        prev.appendChild(img);
+      }
+    });
+  }
+}
+topCountSelect.addEventListener('change',buildStudentInputs);
+buildStudentInputs();
+
+document.getElementById('clearAll').addEventListener('click',()=>{
+  document.querySelectorAll('.photoInput').forEach(i=>i.value='');
+  document.querySelectorAll('.thumbPreview').forEach(t=>t.innerHTML='');
+});
+
+async function fillDocument(){
+  const school=document.getElementById('schoolName').value;
+  const exam=document.getElementById('examName').value;
+  const std=document.getElementById('standard').value;
+  const topVal=document.getElementById('topCount').value;
+  const tbody=document.querySelector('#docTable tbody');
+  const start=parseInt(startRankInput.value,10)||1;
+
+  document.getElementById('docSchool').textContent=school;
+  document.getElementById('docExam').textContent=exam;
+  document.getElementById('stdLabel').textContent=std;
+
+  document.getElementById('docTopLabel').innerHTML = `
+    <span style="float:left">Brilliant Students</span>
+    <span style="font-size:18px;font-weight:bold">TOP: ${topVal}</span>
+    <span style="float:right">Brilliant Students</span>
+  `;
+
+  tbody.innerHTML='';
+  const rows=document.querySelectorAll('#studentsContainer .card');
+  let rank=start;
+
+  for(let rw of rows){
+    const name=rw.querySelector('.nameInput').value;
+    const pr=rw.querySelector('.prInput').value;
+    const file=rw.querySelector('.photoInput').files[0];
+    let img64="";
+    if(file) img64=await fileToBase64(file);
+
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td>${rank}</td>
+      <td>${name}</td>
+      <td>${pr}</td>
+      <td class="photo">
+        ${img64 ? `<img src="${img64}" />` : ''}
+      </td>
+    `;
+    tbody.appendChild(tr);
+    rank++;
+  }
+
+  document.getElementById('docSection').classList.remove('hidden');
+}
+
+document.getElementById('previewOnly').addEventListener('click',e=>{e.preventDefault();fillDocument();});
+document.getElementById('generate').addEventListener('click',e=>{e.preventDefault();fillDocument();});
+
+document.getElementById('downloadPdf').addEventListener('click',()=>{
+  const el=document.getElementById('docToExport');
+  html2pdf()
+    .set({
+      margin:0.4,
+      filename:(document.getElementById('schoolName').value||'report')+'.pdf',
+      image:{type:'jpeg',quality:1},
+      html2canvas:{scale:2,useCORS:true},
+      jsPDF:{unit:'in',format:'a4',orientation:'portrait'}
+    })
+    .from(el)
+    .save()
+    .then(()=>alert("✅ PDF Successfully Downloaded!"));
+});
+
+startRankInput.addEventListener('change',function(){
+  const b=parseInt(this.value,10)||1;
+  document.querySelectorAll('.rankInput').forEach((r,i)=>r.value=b+i);
+});
+startRankInput.dispatchEvent(new Event('change'));
+
+</script>
+</body>
+</html>
