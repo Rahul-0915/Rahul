@@ -11,10 +11,7 @@ body{
   margin:0;
   background:#f4f4f4;
   color:#111;
-  
-  
 }
-
 header{
   text-align:center;
   padding:15px;
@@ -59,35 +56,27 @@ button{
 }
 button.secondary{background:#666}
 button:hover{opacity:0.9}
-
 table{
   width:80%;
-  margin:20px auto;   /* center table */
+  margin:20px auto;
   border-collapse:collapse;
   text-align:center;
   background:#fff;
 }
-
 th,td{
   border:1px solid #444;
   padding:8px;
   font-size:14px;
 }
-/* Rank = Photo same width */
-/* Rank = Photo equal width but bigger */
 td:first-child{
   width:110px;
 }
-
-/* Bigger photo slot */
 td.photo{
   width:110px;
   height:140px;
   padding:6px;
   background:#fff;
-  
 }
-
 td.photo img{
   width:100%;
   height:100%;
@@ -97,9 +86,6 @@ td.photo img{
   background:#fff;
   border-radius:3px;
 }
-
-
-
 .thumb img{
   width:85px;
   height:105px;
@@ -115,8 +101,8 @@ td.photo img{
   font-size:16px;
 }
 .sign-area{
-    width: 80%;
-  margin: auto;
+  width:80%;
+  margin:auto;
   margin-top:70px;
   display:flex;
   justify-content:space-between;
@@ -132,7 +118,6 @@ td.photo img{
 </head>
 
 <body>
-
 <header>
 <strong>Gaming Tournament Winner Board</strong><br>
 <small>Created By Rahul</small>
@@ -169,6 +154,21 @@ td.photo img{
 </div>
 </div>
 
+<!-- 🔹 New section for adding extra columns -->
+<div class="row">
+  <div>
+    <label>Add Extra Column</label>
+    <input type="text" id="extraColName" placeholder="e.g. Score, Remarks">
+  </div>
+  <div style="flex:0 0 150px">
+    <label>&nbsp;</label>
+    <button type="button" id="addColBtn">Add Column</button>
+  </div>
+</div>
+
+<div id="extraColsList" style="margin-top:10px;font-size:14px;color:#333;font-weight:bold"></div>
+<!-- 🔹 End new section -->
+
 <br>
 <label style="font-size:15px">Add Winner Details</label>
 <div id="playersContainer"></div>
@@ -194,7 +194,7 @@ td.photo img{
 <table id="docTable">
 <thead>
 <tr>
-<th>Rank</th>
+<th>No</th>
 <th>Player Name</th>
 <th>Photo</th>
 </tr>
@@ -216,113 +216,154 @@ td.photo img{
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
-
 <script>
 async function fileToBase64(file){
-return new Promise((res,rej)=>{
-  const r=new FileReader();
-  r.onload=()=>res(r.result);
-  r.onerror=rej;
-  r.readAsDataURL(file);
-});
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=()=>res(r.result);
+    r.onerror=rej;
+    r.readAsDataURL(file);
+  });
 }
 
 const playersContainer=document.getElementById('playersContainer');
 const countInput=document.getElementById('winnerCount');
+const extraCols=[];
+const extraColsList=document.getElementById('extraColsList');
+
+function updateExtraColsList(){
+  if(extraCols.length===0) extraColsList.textContent="No extra columns added.";
+  else extraColsList.textContent="Added Columns: "+extraCols.join(', ');
+}
+
+document.getElementById('addColBtn').onclick=()=>{
+  const col=document.getElementById('extraColName').value.trim();
+  if(col && !extraCols.includes(col)){
+    extraCols.push(col);
+    updateExtraColsList();
+    makeInputs(); // refresh player inputs
+    document.getElementById('extraColName').value='';
+  }
+};
 
 function makeInputs(){
-const n=parseInt(countInput.value)||1;
-playersContainer.innerHTML="";
-for(let i=0;i<n;i++){
-const card=document.createElement("div");
-card.className="card";
-card.style.padding="10px";
-card.innerHTML=`
-<div class="row">
-<div style="flex:0 0 60px">
-<label>Rank</label>
-<input type="number" class="rankInput" value="${i+1}">
-</div>
-<div style="flex:1">
-<label>Player Name</label>
-<input type="text" class="nameInput" placeholder="Enter name">
-</div>
-<div style="flex:0 0 150px">
-<label>Photo</label>
-<input type="file" class="photoInput" accept="image/*">
-<div class="thumb"></div>
-</div>
-</div>
-`;
-playersContainer.appendChild(card);
+  const n=parseInt(countInput.value)||1;
+  playersContainer.innerHTML="";
+  for(let i=0;i<n;i++){
+    const card=document.createElement("div");
+    card.className="card";
+    card.style.padding="10px";
 
-const f=card.querySelector('.photoInput');
-const prev=card.querySelector('.thumb');
-f.addEventListener('change',()=>{
-const file=f.files[0];
-prev.innerHTML="";
-if(file){
-const img=document.createElement("img");
-img.src=URL.createObjectURL(file);
-prev.appendChild(img);
-}
-});
-}
+    let extraInputsHTML="";
+    extraCols.forEach(col=>{
+      extraInputsHTML+=`
+      <div>
+        <label>${col}</label>
+        <input type="text" class="extraInput" data-col="${col}" placeholder="${col}">
+      </div>`;
+    });
+
+    card.innerHTML=`
+    <div class="row">
+      <div style="flex:0 0 60px">
+        <label>Rank</label>
+        <input type="number" class="rankInput" value="${i+1}">
+      </div>
+      <div style="flex:1">
+        <label>Player Name</label>
+        <input type="text" class="nameInput" placeholder="Enter name">
+      </div>
+      <div style="flex:0 0 150px">
+        <label>Photo</label>
+        <input type="file" class="photoInput" accept="image/*">
+        <div class="thumb"></div>
+      </div>
+      ${extraInputsHTML}
+    </div>`;
+
+    playersContainer.appendChild(card);
+
+    const f=card.querySelector('.photoInput');
+    const prev=card.querySelector('.thumb');
+    f.addEventListener('change',()=>{
+      const file=f.files[0];
+      prev.innerHTML="";
+      if(file){
+        const img=document.createElement("img");
+        img.src=URL.createObjectURL(file);
+        prev.appendChild(img);
+      }
+    });
+  }
 }
 countInput.addEventListener("input",makeInputs);
 makeInputs();
+updateExtraColsList();
 
 document.getElementById('clearAll').addEventListener('click',()=>{
-document.querySelectorAll('.photoInput').forEach(i=>i.value='');
-document.querySelectorAll('.thumb').forEach(t=>t.innerHTML='');
+  document.querySelectorAll('.photoInput').forEach(i=>i.value='');
+  document.querySelectorAll('.thumb').forEach(t=>t.innerHTML='');
 });
 
 async function fillDoc(){
-const school=document.getElementById('schoolName').value;
-const game=document.getElementById('gameName').value;
-const std=document.getElementById('standard').value;
-const tbody=document.querySelector('#docTable tbody');
-const total=parseInt(countInput.value);
-const start=parseInt(document.getElementById('startRank').value)||1;
+  const school=document.getElementById('schoolName').value;
+  const game=document.getElementById('gameName').value;
+  const std=document.getElementById('standard').value;
+  const tbody=document.querySelector('#docTable tbody');
+  const thead=document.querySelector('#docTable thead tr');
+  const total=parseInt(countInput.value);
+  const start=parseInt(document.getElementById('startRank').value)||1;
 
-document.getElementById('docSchool').textContent=school;
-document.getElementById('docGame').textContent=game;
-document.getElementById('stdLabel').textContent=std;
-document.getElementById('docTopLabel').textContent=`WINNERS (${total})`;
+  document.getElementById('docSchool').textContent=school;
+  document.getElementById('docGame').textContent=game;
+  document.getElementById('stdLabel').textContent=std;
+  
 
-tbody.innerHTML="";
-let rank=start;
-for(let c of document.querySelectorAll('#playersContainer .card')){
-const name=c.querySelector('.nameInput').value;
-const file=c.querySelector('.photoInput').files[0];
-let img64="";
-if(file) img64=await fileToBase64(file);
-tbody.innerHTML+=`
-<tr>
-<td>${rank}</td>
-<td>${name}</td>
-<td class="photo">${img64?`<img src="${img64}">`:''}</td>
-</tr>`;
-rank++;
-}
+  // Reset table header
+  thead.innerHTML=`<th>Rank</th><th>Player Name</th>`;
+  extraCols.forEach(c=>thead.innerHTML+=`<th>${c}</th>`);
+  thead.innerHTML+=`<th>Photo</th>`;
 
-document.getElementById('docSection').classList.remove("hidden");
+  tbody.innerHTML="";
+  let rank=start;
+
+  for(let c of document.querySelectorAll('#playersContainer .card')){
+    const name=c.querySelector('.nameInput').value;
+    const file=c.querySelector('.photoInput').files[0];
+    const extraVals={};
+    c.querySelectorAll('.extraInput').forEach(inp=>{
+      extraVals[inp.dataset.col]=inp.value;
+    });
+
+    let img64="";
+    if(file) img64=await fileToBase64(file);
+
+    let rowHTML=`<tr><td>${rank}</td><td>${name}</td>`;
+    extraCols.forEach(col=>{
+      rowHTML+=`<td>${extraVals[col]||''}</td>`;
+    });
+    rowHTML+=`<td class="photo">${img64?`<img src="${img64}">`:''}</td></tr>`;
+
+    tbody.innerHTML+=rowHTML;
+    rank++;
+  }
+
+  document.getElementById('docSection').classList.remove("hidden");
 }
 
 document.getElementById("previewOnly").onclick=e=>{e.preventDefault();fillDoc()};
 document.getElementById("generate").onclick=e=>{e.preventDefault();fillDoc()};
 
 document.getElementById("downloadPdf").onclick=()=>{
-html2pdf().set({
-margin:0.4,
-filename:"Game-Winners.pdf",
-html2canvas:{scale:2},
-jsPDF:{unit:"in",format:"a4"}
-}).from(document.getElementById("docToExport")).save().then(()=>{
-alert("✅ PDF Downloaded Successfully!");
-});
+  html2pdf().set({
+    margin:0.4,
+    filename:"Game-Winners.pdf",
+    html2canvas:{scale:2},
+    jsPDF:{unit:"in",format:"a4"}
+  }).from(document.getElementById("docToExport")).save().then(()=>{
+    alert("✅ PDF Downloaded Successfully!");
+  });
 };
 </script>
-
 </body>
 </html>
